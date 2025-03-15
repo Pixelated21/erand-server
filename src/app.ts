@@ -8,13 +8,12 @@ import healthcheck from "./plugins/healthcheck";
 import helmet from "./plugins/helmet";
 import jwt from "./plugins/jwt";
 import rateLimit from "./plugins/rate-limit";
-import redis from "./plugins/redis";
 import sensible from "./plugins/sensible";
+import socketIo from "./plugins/socket-io";
 import swagger from "./plugins/swagger";
+import websocket from "./plugins/websocket";
 import zodTypeProvider from "./plugins/zod-type-provider";
 import { envToConfig } from "./utils/config";
-import websocket from "./plugins/websocket";
-import socketIo from "./plugins/socket-io";
 
 const registerCorePlugins = async (fastify: FastifyInstance) => {
 	fastify.register(helmet);
@@ -46,3 +45,4 @@ export async function buildFastify(options?: FastifyServerOptions) {
 
 	return app;
 }
+    

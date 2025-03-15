@@ -12,9 +12,9 @@ export default fp(async (fastify) => {
 		openapi: {
 			openapi: "3.1.0",
 			info: {
-				title: "PCS Courier",
+				title: "Errander",
 				description: "API Documentation",
-				version: pkg.version,
+				version: "1.0.0",
 			},
 			servers: [
 				{
