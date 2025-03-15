@@ -1,0 +1,102 @@
+services:
+    errandr-server:
+        build:
+            context: .
+        ports:
+            - '3020:3020'
+        env_file:
+            - .env
+        networks:
+            - errandr-network
+        environment:
+            - PORT=3020
+        depends_on:
+            errandr-database:
+                condition: service_healthy
+            errandr-redis:
+                condition: service_healthy
+            errandr-pgbouncer:
+                condition: service_healthy
+        healthcheck:
+            test: [ 'CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://errandr-server:3020/healthcheck' ]
+            interval: 10s
+            timeout: 5s
+            retries: 5
+            start_period: 10s
+
+    errandr-database:
+        image: postgres:17-alpine
+        environment:
+            POSTGRES_USER: errandr-admin
+            POSTGRES_PASSWORD: whatever21
+            POSTGRES_DB: errandr-db
+        ports:
+            - '5447:5432'
+        networks:
+            - errandr-network
+        volumes:
+            - ../docker/errandr-database:/var/lib/postgresql/data
+        extra_hosts:
+            - "host.docker.internal:host-gateway"
+        healthcheck:
+            test: [ 'CMD-SHELL', 'pg_isready -U errandr-admin -d errandr-db' ]
+            interval: 10s
+            timeout: 5s
+            retries: 5
+            start_period: 10s
+
+    errandr-pgbouncer:
+        image: bitnami/pgbouncer:latest
+        networks:
+            - errandr-network
+        ports:
+            - "6432:6432"
+        environment:
+            - PGBOUNCER_DATABASE=errandr-db
+            - POSTGRESQL_HOST=errandr-database
+            - POSTGRESQL_PORT=5432
+            - POSTGRESQL_USERNAME=errandr-admin
+            - POSTGRESQL_PASSWORD=whatever21
+            - PGBOUNCER_AUTH_TYPE=md5
+            - PGBOUNCER_AUTH_USER=errandr-admin
+            - PGBOUNCER_ADMIN_USERS=errandr-admin
+            - PGBOUNCER_MIN_POOL_SIZE=20
+            - PGBOUNCER_RESERVE_POOL_SIZE=20
+            - PGBOUNCER_POOL_MODE=transaction
+            - PGBOUNCER_MAX_DB_CONNECTIONS=95
+            - PGBOUNCER_MAX_USER_CONNECTIONS=95
+            - PGBOUNCER_IDLE_TRANSACTION_TIMEOUT=300
+            - PGBOUNCER_SERVER_IDLE_TIMEOUT=600
+        depends_on:
+            errandr-database:
+                condition: service_healthy
+        extra_hosts:
+            - "host.docker.internal:host-gateway"
+        healthcheck:
+            test: [ "CMD-SHELL", "PGPASSWORD=whatever21 psql -h errandr-pgbouncer -p 6432 -U errandr-admin -d errandr-db -c '\\q' || exit 1" ]
+            interval: 10s
+            timeout: 5s
+            retries: 5
+            start_period: 30s
+
+    errandr-redis:
+        image: redis:latest
+        networks:
+            - errandr-network
+        ports:
+            - '6379:6379'
+        extra_hosts:
+            - "host.docker.internal:host-gateway"
+        healthcheck:
+            test: [ 'CMD', 'redis-cli', 'ping' ]
+            interval: 10s
+            timeout: 5s
+            retries: 5
+            start_period: 10s
+
+networks:
+    errandr-network:
+        driver: bridge
+
+volumes:
+    postgres-data:

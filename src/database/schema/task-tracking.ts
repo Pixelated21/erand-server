@@ -5,20 +5,14 @@ import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { timestamps } from "../helpers";
 import { auth } from "./auth";
 import { categories } from "./category";
+import { task } from "./task";
 
-export const task = table(
-	"task",
+export const taskTracking = table(
+	"task_tracking",
 	{
 		id: t.uuid().defaultRandom().primaryKey(),
-		user_id: t.uuid().notNull().references(() => auth.id),
-		categoryId: t.uuid().references(() => categories.id),
-		title: t.text().notNull(),
-		description: t.text().notNull(),
-		price: t.numeric().notNull(),
-		longitude: t.numeric().notNull(),
-		latitude: t.numeric().notNull(),    
-		address: t.text().notNull(),
-		images: t.jsonb().notNull(),
+		taskId: t.uuid().notNull().references(() => task.id),
+		status: t.text().$type<"pending" | "accepted" | "rejected">().default("pending"),
 		...timestamps,
 	},
 );

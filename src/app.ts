@@ -14,6 +14,9 @@ import swagger from "./plugins/swagger";
 import websocket from "./plugins/websocket";
 import zodTypeProvider from "./plugins/zod-type-provider";
 import { envToConfig } from "./utils/config";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 const registerCorePlugins = async (fastify: FastifyInstance) => {
 	fastify.register(helmet);
@@ -45,4 +48,3 @@ export async function buildFastify(options?: FastifyServerOptions) {
 
 	return app;
 }
-    
